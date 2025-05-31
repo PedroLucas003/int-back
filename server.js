@@ -5,31 +5,18 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// Configuração do CORS mais robusta
+// Configuração do CORS simplificada para teste
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'http://localhost:3000'
-    ];
-    
-    // Permitir requisições sem origem (como mobile apps ou curl)
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000'
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Habilitar preflight para todas as rotas
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(express.json());
