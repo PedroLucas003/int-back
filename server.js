@@ -1,12 +1,30 @@
+// backend/server.js
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+const cors =require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+// Configuração do CORS mais segura para produção
+const allowedOrigins = [process.env.FRONTEND_URL]; // Sua URL do frontend Vercel
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:3000'); // Permite localhost em desenvolvimento
+}
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite requisições sem 'origin' (como Postman, apps mobile) em desenvolvimento ou se não houver origin
+    if (!origin && process.env.NODE_ENV !== 'production') return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1 && origin) { // Adicionado "&& origin" para evitar erro com undefined
+      const msg = 'A política CORS para este site não permite acesso da Origem especificada.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
+
 app.use(express.json());
 
 // Conexão com MongoDB
