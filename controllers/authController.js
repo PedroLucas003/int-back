@@ -35,6 +35,7 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro no registro:', error);
     res.status(500).json({ message: 'Erro no servidor', error: error.message });
   }
 };
@@ -72,6 +73,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Erro no login:', error);
     res.status(500).json({ message: 'Erro no servidor', error: error.message });
   }
 };

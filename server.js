@@ -1,30 +1,37 @@
-// backend/server.js
 require('dotenv').config();
 const express = require('express');
-const cors =require('cors');
+const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
 
-// Middleware
-// Configuração do CORS mais segura para produção
-const allowedOrigins = [process.env.FRONTEND_URL]; // Sua URL do frontend Vercel
-if (process.env.NODE_ENV !== 'production') {
-  allowedOrigins.push('http://localhost:3000'); // Permite localhost em desenvolvimento
-}
-
-app.use(cors({
+// Configuração do CORS mais robusta
+const corsOptions = {
   origin: function (origin, callback) {
-    // Permite requisições sem 'origin' (como Postman, apps mobile) em desenvolvimento ou se não houver origin
-    if (!origin && process.env.NODE_ENV !== 'production') return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1 && origin) { // Adicionado "&& origin" para evitar erro com undefined
-      const msg = 'A política CORS para este site não permite acesso da Origem especificada.';
-      return callback(new Error(msg), false);
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:3000'
+    ];
+    
+    // Permitir requisições sem origem (como mobile apps ou curl)
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
     }
-    return callback(null, true);
-  }
-}));
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Habilitar preflight para todas as rotas
+
+// Middleware
 app.use(express.json());
 
 // Conexão com MongoDB
@@ -47,6 +54,12 @@ app.use('/api/orders', orderRoutes);
 // Rota de teste
 app.get('/', (req, res) => {
   res.send('API do E-commerce está funcionando!');
+});
+
+// Middleware de erro
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Erro interno no servidor' });
 });
 
 // Iniciar servidor
